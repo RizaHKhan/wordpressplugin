@@ -1,0 +1,19 @@
+.container {
+    padding: 50px;
+    background: red;
+}
+
+.header {
+    color: red;
+    font-size: 30px;
+}
+
+.subheader {
+    font-size: 18px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 5px;
+    }
+}
