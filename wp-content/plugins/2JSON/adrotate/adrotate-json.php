@@ -1,18 +1,9 @@
 <?php
+header("Content-Description: File Transfer");
+header("Content-Type: text/plain");
+header("Content-Disposition: attachment; filename=\"tojson.json\"");
 
-require 'Broadstreet.php';
-
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-# Config
-$site = 'The Site';
-$baseurl  = 'http://localhost:1234/practice/';
-$host = $_POST['host'];
-$db   = $_POST['db'];
-$user = $_POST['user'];
-$password = $_POST['password'];
-$prefix = $_POST['prefix'];
+global $wpdb;
 
 $dbh = mysqli_connect($host, $user, $password) or die('Cant connect to db');
 mysqli_select_db($dbh, $db) or die("No db named $db");
@@ -36,6 +27,7 @@ while($row = mysqli_fetch_assoc($qh))
     );
 
     $zones_map[$row['id']] = true;
+
 }
 
 # Get all advertisers
@@ -179,7 +171,6 @@ END;
     return preg_replace($regex, '$1', $str);
 }
 
-
 $import = array (
     'websites' => array (
         array (
@@ -192,10 +183,10 @@ $import = array (
     )
 );
 
-echo '<pre>';
-print_r($import);
-echo '</pre>';
-echo count($import['websites'][0]['advertisers']) . " advertisers exported.\n";
+// #print_r($zones);
+// file_put_contents("$db.json", json_encode($import));
 
-#print_r($zones);
-file_put_contents("$db.json", json_encode($import));
+// echo '<pre>';
+print_r($import);
+// echo '</pre>';
+echo count($import['websites'][0]['advertisers']) . " advertisers exported.\n";
