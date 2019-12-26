@@ -18,34 +18,75 @@ global $wpdb;
 $zones = array();
 $advertisers = array();
 
-# Get all advertisers from adrotate root table
-$adrotate = $wpdb->get_results("SELECT * FROM wp_adrotate", OBJECT_K);
+# READING ALL TABLES:
+$adrotate = $wpdb->get_results("SELECT * FROM `".$wpdb->prefix."adrotate`", OBJECT_K);
+$groups = $wpdb->get_results("SELECT * FROM `".$wpdb->prefix."adrotate_groups`", OBJECT_K);
+$linkmeta = $wpdb->get_results("SELECT `group`, `schedule` FROM `".$wpdb->prefix."adrotate_linkmeta`", OBJECT_K);
+$schedule = $wpdb->get_results("SELECT * FROM `".$wpdb->prefix."adrotate_schedule`", OBJECT_K);
 
-foreach($adrotate as $row)
-{
-    $advertisers[] = $row;
-}
+# Logic for $result array
 
-# Group table
-$groups = $wpdb->get_results("SELECT * FROM wp_adrotate_groups", OBJECT_K);
-
+# Zones array logic
 foreach($groups as $row) 
 {
-    $zones[] = $row;
+    $zones[] = array(
+        'id' => intval($row->id),
+        'name' => $row->name,
+        'alias' => "group_" . $row->id
+    );
 }
 
-# Linkmeta table CURRENTLY UNUSED
-$linkmeta = $wpdb->get_results("SELECT * FROM wp_adrotate_linkmeta");
+# group table logic
+foreach($adrotate as $row)
+{
+    $tmp = explode('-', $row->title);
 
-# Schedule table CURRENTLY UNUSED
-$schedule = $wpdb->get_results("SELECT * FROM wp_adrotate_schedule");
+    if(count($tmp) > 1) {
+        $advertiser = trim(htmlspecialchars($tmp[0]));
+        $ad = $advertiser . ' - ' . htmlspecialchars(trim($tmp[1]));
+    } else {
+        $advertiser = trim(htmlspecialchars($tmp[0]));
+        $ad = trim(htmlspecialchars($tmp[0]));
+    }
 
-# Currently combining the $groups table per the original script.
+    $advertiser = preg_replace('#\-?\s*\d+\s*x\s*\d+\s*\-?#', '', $advertiser);
+    $advertiser = stripslashes(html_entity_decode($advertiser, ENT_QUOTES, 'UTF-8'));
+    $ad         = $advertiser;
+    $advertiser = str_ireplace('rotator', '', $advertiser);
+    
+    $advertiser = array (
+        'id'   => $row->id,
+        'name' => $advertiser,
+	    'users' => array (),
+        'campaigns' => array ()
+    );
 
+    $banner = array (
+        'id'   => $row->id,
+        'name' => $ad,
+        'zone_ids' => array(),
+        'destination' => null
+    );
+
+    foreach($linkmeta as $row) {
+        
+        if($row->group) {
+            $banner['zone_ids'][] = $row->group;
+        }
+
+        $code = clean(stripslashes(html_entity_decode($row->bannercode, ENT_QUOTES, 'UTF-8')));
+        $code = str_replace('%link%', '{BS:CLICK_URL}', $code);
+
+        
+    }
+}
+
+# Output array combinging the above logic
 $results = array(
     'websites' => array (
         array(
             'id' => 1,
+            'website name' => $_POST['website'] ? $_POST['website'] : 'Unnamed',
             'database name' => $wpdb->dbname,
             'zones' => $zones,
             'advertisers' => $advertisers,
@@ -55,4 +96,5 @@ $results = array(
 );
 
 # Print to file
-print_r(json_encode($results));
+print_r($results);
+
