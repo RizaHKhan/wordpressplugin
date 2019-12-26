@@ -1,4 +1,10 @@
 <?php
+// TABLES OF INTEREST: 
+// wp_adrotate
+// wp_adrotate-groups
+// wp_adrotate-linkmeta
+// wp_adrotate_schedule
+
 # Set Headers
 header("Content-Description: File Transfer");
 header("Content-type: application/json; charset=utf-8");
@@ -8,41 +14,45 @@ header('Content-Disposition: attachment; filename="tojson.json"');
 require_once('../../../wp-config.php');
 global $wpdb;
 
-$advertisers = array();
+# Declaring Variables:
 $zones = array();
-$zones_map = array();
-$banners = array();
-$campaigns = array();
+$advertisers = array();
 
-# Get all zones
-$qh = $wpdb->get_results("SELECT * FROM wp_adrotate_groups");
-while($row = fetch_assoc($qh)) {
-    $zones[] = array (
-        'id' => intval($row['id']),
-        'name' => $row['name'],
-        'alias' => 'group_' . $row['id']
-    );
+# Get all advertisers from adrotate root table
+$adrotate = $wpdb->get_results("SELECT * FROM wp_adrotate", OBJECT_K);
 
-    $zones_map[$row['id']] = true;
+foreach($adrotate as $row)
+{
+    $advertisers[] = $row;
 }
 
-# Get all advertisers
-$qh = $wpdb->get_results("SELECT * FROM wp_adrotate");
+# Group table
+$groups = $wpdb->get_results("SELECT * FROM wp_adrotate_groups", OBJECT_K);
 
-# Get the zone ids the ad runs in 
+foreach($groups as $row) 
+{
+    $zones[] = $row;
+}
 
-# 
+# Linkmeta table CURRENTLY UNUSED
+$linkmeta = $wpdb->get_results("SELECT * FROM wp_adrotate_linkmeta");
 
-// $import = array(
-//     'websites' => array (
-//         array(
-//             'id' => 1,
-//             'name' => $site,
-//             'zones' => $zone,
-//             'advertisers' => $advertisers,
-//             'targeting_keys' => array()
-//         )
-//     )
-// );
+# Schedule table CURRENTLY UNUSED
+$schedule = $wpdb->get_results("SELECT * FROM wp_adrotate_schedule");
 
-print_r($import);
+# Currently combining the $groups table per the original script.
+
+$results = array(
+    'websites' => array (
+        array(
+            'id' => 1,
+            'database name' => $wpdb->dbname,
+            'zones' => $zones,
+            'advertisers' => $advertisers,
+            'targeting_keys' => array()
+        )
+    )
+);
+
+# Print to file
+print_r(json_encode($results));
