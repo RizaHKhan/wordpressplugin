@@ -41,7 +41,7 @@ $adrotate = $wpdb->get_results("SELECT * FROM `".$wpdb->prefix."adrotate`", OBJE
 foreach($adrotate as $row)
 {
     $tmp = explode('-', $row->title);
-
+    
     if(count($tmp) > 1) {
         $advertiser = trim(htmlspecialchars($tmp[0]));
         $ad = $advertiser . ' - ' . htmlspecialchars(trim($tmp[1]));
@@ -70,7 +70,7 @@ foreach($adrotate as $row)
     );
 
     $linkmeta = $wpdb->get_results("SELECT `group`, `schedule` FROM `".$wpdb->prefix."adrotate_linkmeta`", OBJECT_K);
-
+    
     foreach($linkmeta as $row) {
         
         if ($row->id == '4') {
@@ -79,40 +79,45 @@ foreach($adrotate as $row)
         }
 
         // ALERT
-        if($row->group) {
-            $banner->zone_ids = $row->group;
-        }
-
+        if($banner->zone_ids) {
+            if($row->group) {
+                $banner->zone_ids = $row->group;
+            }
+        }        
+        
         $code = clean(stripslashes(html_entity_decode($row->bannercode, ENT_QUOTES, 'UTF-8')));
         $code = str_replace('%link%', '{BS:CLICK_URL}', $code);
-
-        # Check the banner type
-        if(strstr($code, '<table') || strstr($code, '<script') || strstr($code, '<iframe'))
-        {
-            $code = str_replace('/wp-content', $baseurl . '/wp-content', $code);
-            $banner->html = $code;
-        }
-        elseif(strlen($row->image))
-        {
-            $banner->image_url = $row->image;
-            $href = preg_match('#href="([^"]*)"#i', $code, $matches);
-            if ($matches) {
-                $banner->destination = $matches[1];
+        
+        
+        if ($code) {
+            # Check the banner type
+            if(strstr($code, '<table') || strstr($code, '<script') || strstr($code, '<iframe'))
+            {
+                $code = str_replace('/wp-content', $baseurl . '/wp-content', $code);
+                $banner->html = $code;
             }
+            elseif(strlen($row->image))
+            {
+                $banner->image_url = $row->image;
+                $href = preg_match('#href="([^"]*)"#i', $code, $matches);
+                if ($matches) {
+                    $banner->destination = $matches[1];
+                }
 
-            if (strpos($banner->destination, 'www') == 0) {
-                $banner->destination = 'http://' . $banner->destination;
+                if (strpos($banner->destination, 'www') == 0) {
+                    $banner->destination = 'http://' . $banner->destination;
+                }
             }
-        }
-        else {
-            $img = preg_match('#src=\"(.*(jpg|jpeg|png|gif))"#i', $code, $matches);
+            else {
+                $img = preg_match('#src=\"(.*(jpg|jpeg|png|gif))"#i', $code, $matches);
+                
+                if(!$matches) { echo "No Matches: {$row->id} / $code\n"; continue; }
+                #else print_r($matches);
+                #else echo "Match: {$matches[1]}\n";
 
-            if(!$matches) { echo "No Matches: {$row->id} / $code\n"; continue; }
-            #else print_r($matches);
-            #else echo "Match: {$matches[1]}\n";
-
-            if(strstr($matches[1], 'http')) $banner->image_url = $matches[1];
-            else $banner->image_url = $baseurl . $matches[1];
+                if(strstr($matches[1], 'http')) $banner->image_url = $matches[1];
+                else $banner->image_url = $baseurl . $matches[1];
+            }
         }
 
         /* Reset the flight time */
@@ -141,7 +146,6 @@ foreach($adrotate as $row)
             continue;
         }
 
-        // ALERT
         $advertiser->campaigns[] = array (
             'id' => $fake_campaign_id,
             'name' => $ad . ' Campaign ' . $fake_campaign_id++,
@@ -153,10 +157,12 @@ foreach($adrotate as $row)
         );      
     }
 
-    // // ALERT
-    // if (count($advertiser->campaigns) && count($advertiser->campaigns->banners) ) {
-    //     $advertisers[] = $advertiser;
-    // }
+    // ALERT
+    if ($advertiser->campaigns) {
+        if (count($advertiser->campaigns) && count($advertiser->campaigns->banners) ) {
+            $advertisers[] = $advertiser;
+        }
+    }
 }
 
 # Output array combinging the above logic
@@ -174,7 +180,7 @@ $results = array(
 );
 
 # Print to file
-print_r($results);
+print_r(json_encode($results));
 
 function clean($str)
 {
