@@ -86,8 +86,7 @@ foreach($adrotate as $row)
         }        
         
         $code = clean(stripslashes(html_entity_decode($row->bannercode, ENT_QUOTES, 'UTF-8')));
-        $code = str_replace('%link%', '{BS:CLICK_URL}', $code);
-        
+        $code = str_replace('%link%', '{BS:CLICK_URL}', $code);        
         
         if ($code) {
             # Check the banner type
