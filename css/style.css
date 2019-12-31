@@ -1,1 +1,37 @@
-/* No CSS *//*# sourceMappingURL=style.css.map
+p {
+  width: 300px;
+}
+
+form {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  width: 200px;
+}
+
+label {
+  margin: 5px 0;
+}
+
+input {
+  margin: 5px 0;
+}
+
+#button {
+  border: solid 1px black;
+  height: 32px;
+  border-radius: 5px;
+  -webkit-transition: all .5s ease-in-out;
+  transition: all .5s ease-in-out;
+}
+
+#button:hover {
+  color: white;
+  background: black;
+  cursor: pointer;
+}
+/*# sourceMappingURL=style.css.map */

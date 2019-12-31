@@ -13,15 +13,27 @@ if (!defined('ABSPATH')) {
     die;
 }
 
-require_once(plugin_dir_path(__FILE__) . '/includes/2JSON-scripts.php');
+class ToJson {
 
-function register_menu_page() {
-    add_menu_page('2JSON', '2JSON', 'manage_options', 'adminmenu', 'tojson_callback', 'dashicons-paperclip');
+    public function register() {
+        add_action('admin_enqueue_scripts', array($this, 'enqueue'));
+        add_action('admin_menu', array($this, 'menu_script'));
+    }
+
+    public function enqueue() {
+        wp_enqueue_style('2JSON_style', plugins_url('/css/style.css', __FILE__));
+    }
+
+    function menu_script() {
+        add_menu_page('2JSON', '2JSON', 'manage_options', 'tojson_plugin', array($this, 'admin_index'), 'dashicons-paperclip', 110);
+    }
+
+    function admin_index() {
+        require_once plugin_dir_path(__FILE__) . '/template/admin_page.php';
+    }
 }
 
-add_action('admin_menu', 'register_menu_page');
-
-function tojson_callback() {
-    require_once dirname(__FILE__) . '/2JSON-admin.php';
+if(class_exists('ToJson')) {
+    $toJsonPlugin = new ToJson;
+    $toJsonPlugin->register();
 }
-
